@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Banco principal para dados relacionais
+  postgres:
+    image: postgres:16-alpine
+    container_name: nutri_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nutri_user
+      POSTGRES_PASSWORD: nutri_password
+      POSTGRES_DB: nutri_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nutri_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutri_user -d nutri_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PgAdmin - Interface web para PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nutri_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nutri.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - nutri_network
+
+  # MongoDB - Apenas para logs e métricas
+  mongodb:
+    image: mongo:7.0
+    container_name: nutri_mongodb_logs
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: nutri_logs
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - nutri_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Mongo Express - Interface para visualizar logs
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: nutri_mongo_express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      - mongodb
+    networks:
+      - nutri_network
+
+  # Redis - Cache e sessões
+  redis:
+    image: redis:7.2-alpine
+    container_name: nutri_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nutri_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Insight - Interface para Redis
+  redis-insight:
+    image: redis/redisinsight:2.54
+    container_name: nutri_redis_insight
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis_insight_data:/data
+    depends_on:
+      - redis
+    networks:
+      - nutri_network
+
+  # API NestJS
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nutri_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost:3000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      
+      # PostgreSQL Configuration (Banco Principal)
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USERNAME: nutri_user
+      POSTGRES_PASSWORD: nutri_password
+      POSTGRES_DATABASE: nutri_db
+      
+      # MongoDB Configuration (Apenas Logs)
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/nutri_logs?authSource=admin
+      
+      # Redis Configuration (Cache)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis123
+      
+      # JWT Configuration
+      JWT_SECRET: seu-jwt-secret-super-seguro-aqui
+      JWT_EXPIRATION: 24h
+      
+      # Admin Configuration
+      SUPER_ADMIN_EMAIL: admin@nutri.com
+      SUPER_ADMIN_PASSWORD: Admin123!
+      
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - nutri_network
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  redis_insight_data:
+
+networks:
+  nutri_network:
+    driver: bridge 

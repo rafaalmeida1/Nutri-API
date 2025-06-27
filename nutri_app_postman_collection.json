@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "Nutri App API",
+    "description": "Collection para a API do aplicativo de nutrição",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.access_token);",
+                  "    pm.collectionVariables.set('refreshToken', response.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@nutri.com\",\n  \"password\": \"Admin123!\",\n  \"tenantSubdomain\": \"opcional\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Faz login do usuário e obtém token de acesso"
+          }
+        },
+        {
+          "name": "Registrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nutricionista@exemplo.com\",\n  \"password\": \"123456\",\n  \"name\": \"João Nutricionista\",\n  \"role\": \"nutricionista\",\n  \"tenantId\": \"tenant-uuid\",\n  \"crn\": \"12345\",\n  \"especialidade\": \"Nutrição Clínica\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra um novo usuário (nutricionista ou paciente)"
+          }
+        },
+        {
+          "name": "Registrar Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@exemplo.com\",\n  \"password\": \"123456\",\n  \"name\": \"Super Administrador\",\n  \"role\": \"super_admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/super-admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "super-admin"]
+            },
+            "description": "Registra um super admin (apenas super admins podem fazer isso)"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.access_token);",
+                  "    pm.collectionVariables.set('refreshToken', response.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Atualiza o token de acesso usando refresh token"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Faz logout do usuário"
+          }
+        },
+        {
+          "name": "Meu Perfil (Auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Obtém informações básicas do perfil do usuário logado"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Usuários",
+      "item": [
+        {
+          "name": "Listar Todos os Usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Lista todos os usuários (apenas super admin)"
+          }
+        },
+        {
+          "name": "Usuários por Tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/by-tenant/:tenantId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "by-tenant", ":tenantId"],
+              "variable": [
+                {
+                  "key": "tenantId",
+                  "value": "tenant-uuid-exemplo"
+                }
+              ]
+            },
+            "description": "Lista usuários de um tenant específico"
+          }
+        },
+        {
+          "name": "Meus Pacientes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/patients/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "patients", "my"]
+            },
+            "description": "Lista pacientes do nutricionista logado"
+          }
+        },
+        {
+          "name": "Meu Perfil Completo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"]
+            },
+            "description": "Obtém perfil completo do usuário logado"
+          }
+        },
+        {
+          "name": "Buscar Usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-uuid-exemplo"
+                }
+              ]
+            },
+            "description": "Busca usuário específico por ID"
+          }
+        },
+        {
+          "name": "Criar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"paciente@exemplo.com\",\n  \"password\": \"123456\",\n  \"name\": \"Maria Paciente\",\n  \"role\": \"paciente\",\n  \"tenantId\": \"tenant-uuid\",\n  \"nutricionistaId\": \"nutricionista-uuid\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Cria um novo usuário"
+          }
+        },
+        {
+          "name": "Desativar Usuário",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "deactivate"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-uuid-exemplo"
+                }
+              ]
+            },
+            "description": "Desativa um usuário"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Logs",
+      "item": [
+        {
+          "name": "Meus Logs de Acesso",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs/my-access?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs", "my-access"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Obtém logs de acesso do usuário logado"
+          }
+        },
+        {
+          "name": "Estatísticas Globais",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs", "stats"]
+            },
+            "description": "Obtém estatísticas globais de acesso (apenas super admin)"
+          }
+        }
+      ]
+    }
+  ]
+} 
