@@ -24,7 +24,8 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f api",
     "db:start": "docker run -d --name postgres-nutri -e POSTGRES_USER=nutri_user -e POSTGRES_PASSWORD=nutri_password -e POSTGRES_DB=nutri_db -p 5432:5432 postgres:16-alpine && docker run -d --name mongodb-nutri -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin123 -p 27017:27017 mongo:7.0 && docker run -d --name redis-nutri -p 6379:6379 redis:7.2-alpine redis-server --requirepass redis123",
-    "db:stop": "docker stop postgres-nutri mongodb-nutri redis-nutri && docker rm postgres-nutri mongodb-nutri redis-nutri"
+    "db:stop": "docker stop postgres-nutri mongodb-nutri redis-nutri && docker rm postgres-nutri mongodb-nutri redis-nutri",
+    "create:super-admin": "ts-node src/scripts/create-super-admin.ts"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^3.0.1",
