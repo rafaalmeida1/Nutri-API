@@ -5,8 +5,6 @@ import { Role } from '../auth/enums/role.enum';
 import { envConfig } from '../config/env.config';
 
 async function createSuperAdmin() {
-  console.log('🔧 Criando Super Admin...');
-  
   const app = await NestFactory.createApplicationContext(AppModule);
   const usersService = app.get(UsersService);
 
@@ -15,9 +13,6 @@ async function createSuperAdmin() {
     const existingSuperAdmin = await usersService.findByEmail(envConfig.superAdmin.email);
     
     if (existingSuperAdmin) {
-      console.log('✅ Super Admin já existe!');
-      console.log(`📧 Email: ${existingSuperAdmin.email}`);
-      console.log(`👤 Nome: ${existingSuperAdmin.name}`);
       await app.close();
       return;
     }
@@ -30,9 +25,9 @@ async function createSuperAdmin() {
       role: Role.SUPER_ADMIN,
     });
 
-    console.log('🎉 Super Admin criado com sucesso!');
-    console.log(`📧 Email: ${superAdmin.email}`);
-    console.log(`🔑 Senha: ${envConfig.superAdmin.password}`);
+    console.log('Super Admin criado com sucesso!');
+    console.log(`Email: ${superAdmin.email}`);
+    console.log(`Senha: ${envConfig.superAdmin.password}`);
     console.log('⚠️  ALTERE A SENHA APÓS O PRIMEIRO LOGIN!');
     
   } catch (error) {

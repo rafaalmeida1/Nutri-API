@@ -6,7 +6,7 @@ import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
 import { Role } from './enums/role.enum';
 import { JwtPayload } from './strategies/jwt.strategy';
-import { TenantsService } from 'src/tenants/tenants.service';
+import { TenantsService } from '../tenants/tenants.service';
 
 @Injectable()
 export class AuthService {
