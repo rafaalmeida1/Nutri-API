@@ -8,6 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { JsonTransformer } from '../../common/transformers/json.transformer';
 
 @Entity('tenants')
 @Index(['subdomain'], { unique: true })
@@ -33,7 +34,7 @@ export class Tenant {
   ownerId: string; // ID do nutricionista proprietário
 
   // Configurações do tenant
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true, transformer: JsonTransformer })
   settings: {
     maxPatients?: number;
     allowedFeatures?: string[];
@@ -51,7 +52,7 @@ export class Tenant {
   @Column({ nullable: true })
   phone: string;
 
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true, transformer: JsonTransformer })
   address: {
     street?: string;
     city?: string;
@@ -61,7 +62,7 @@ export class Tenant {
   };
 
   // Metadata adicional
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true, transformer: JsonTransformer })
   metadata: Record<string, any>;
 
   @CreateDateColumn()

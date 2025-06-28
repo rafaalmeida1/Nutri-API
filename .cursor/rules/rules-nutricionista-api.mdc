@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## 📌 Padrões e Regras do Projeto
+
+### ✅ O que deve ser feito
+
+- Todas as rotas devem salvar logs de forma automática via Interceptor utilizando MongoDB com Mongoose.
+- Toda requisição deve ser interceptada para fins de log, sem necessidade de log manual.
+- Toda listagem deve utilizar cache com Redis sempre que aplicável.
+- Paginação de dados deve ser feita utilizando cursor, nunca com offset.
+- Todas as alterações de documentação devem ser feitas **exclusivamente no arquivo `README.md`**.
+- Ao criar ou alterar rotas, atualizar o arquivo `nutri_app_postman_collection.json` localizado na raiz do projeto.
+- Usar PostgreSQL com TypeORM para dados principais.
+- Seguir fielmente os padrões estabelecidos no projeto, tanto na estrutura de código quanto na organização dos módulos e arquivos.
+- Usar `createdAt` ou `id` como base para o cursor.
+
+### 🚫 O que não deve ser feito
+
+- Não criar arquivos `.md` adicionais fora do `README.md`.
+- Não inserir logs manuais (`console.log`, `logger.info`, etc.).
+- Não utilizar `offset` em consultas para paginação.
+- Não alterar estrutura ou padrões do projeto sem alinhamento prévio.
+- Não esquecer de atualizar o `nutri_app_postman_collection.json` ao adicionar ou alterar rotas.

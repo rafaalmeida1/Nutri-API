@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Role } from '../../auth/enums/role.enum';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { JsonTransformer } from '../../common/transformers/json.transformer';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -30,8 +31,8 @@ export class User {
   name: string;
 
   @Column({
-    type: 'enum',
-    enum: Role,
+    type: 'varchar',
+    length: 50,
   })
   role: Role;
 
@@ -41,7 +42,7 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   lastLogin: Date;
 
   @Column({ type: 'varchar', nullable: true })
@@ -59,7 +60,7 @@ export class User {
   especialidade: string;
 
   // Metadata adicional
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true, transformer: JsonTransformer })
   metadata: Record<string, any>;
 
   @CreateDateColumn()
