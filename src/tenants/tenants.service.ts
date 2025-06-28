@@ -2,6 +2,7 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
+import { Role } from '../auth/enums/role.enum';
 
 export interface CreateTenantDto {
   name: string;
@@ -70,7 +71,7 @@ export class TenantsService {
     });
   }
 
-  async update(id: string, updateData: Partial<CreateTenantDto>): Promise<Tenant> {
+  async update(id: string, updateData: Partial<Tenant>): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({ where: { id } });
 
     if (!tenant) {
@@ -138,8 +139,10 @@ export class TenantsService {
 
     const totalUsers = tenant.users.length;
     const activeUsers = tenant.users.filter(user => user.isActive).length;
-    const nutricionistas = tenant.users.filter(user => user.role === 'nutricionista').length;
-    const pacientes = tenant.users.filter(user => user.role === 'paciente').length;
+    const nutricionistas = tenant.users.filter(user => 
+      user.role === Role.NUTRICIONISTA_ADMIN || user.role === Role.NUTRICIONISTA_FUNCIONARIO
+    ).length;
+    const pacientes = tenant.users.filter(user => user.role === Role.PACIENTE).length;
 
     return {
       id: tenant.id,

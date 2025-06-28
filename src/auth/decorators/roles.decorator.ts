@@ -8,14 +8,20 @@ export const Permissions = (...permissions: Permission[]) => SetMetadata('permis
 // Decorador para super admin apenas
 export const SuperAdminOnly = () => Roles(Role.SUPER_ADMIN);
 
-// Decorador para nutricionistas apenas
-export const NutricionistaOnly = () => Roles(Role.NUTRICIONISTA);
+// Decorador para nutricionistas admin apenas
+export const NutricionistaAdminOnly = () => Roles(Role.NUTRICIONISTA_ADMIN);
+
+// Decorador para qualquer nutricionista (admin ou funcionário)
+export const NutricionistaOnly = () => Roles(Role.NUTRICIONISTA_ADMIN, Role.NUTRICIONISTA_FUNCIONARIO);
 
 // Decorador para pacientes apenas
 export const PacienteOnly = () => Roles(Role.PACIENTE);
 
 // Decorador para nutricionistas e super admin
-export const NutricionistaOrAdmin = () => Roles(Role.NUTRICIONISTA, Role.SUPER_ADMIN);
+export const NutricionistaOrAdmin = () => Roles(Role.NUTRICIONISTA_ADMIN, Role.NUTRICIONISTA_FUNCIONARIO, Role.SUPER_ADMIN);
+
+// Decorador para admins do tenant (nutricionista admin ou super admin)
+export const TenantAdminOnly = () => Roles(Role.NUTRICIONISTA_ADMIN, Role.SUPER_ADMIN);
 
 // Decorador para todos os usuários autenticados (qualquer role)
-export const AuthenticatedOnly = () => Roles(Role.SUPER_ADMIN, Role.NUTRICIONISTA, Role.PACIENTE); 
+export const AuthenticatedOnly = () => Roles(Role.SUPER_ADMIN, Role.NUTRICIONISTA_ADMIN, Role.NUTRICIONISTA_FUNCIONARIO, Role.PACIENTE); 

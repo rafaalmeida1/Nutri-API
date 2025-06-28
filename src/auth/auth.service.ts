@@ -98,10 +98,35 @@ export class AuthService {
       if (registerDto.tenantId) {
         throw new BadRequestException('Super admin não deve ter tenantId');
       }
-    } else {
-      // Nutricionista e paciente devem ter tenantId
+    } else if (registerDto.role === Role.NUTRICIONISTA_ADMIN) {
+      // Nutricionista admin pode não ter tenantId (será criado automaticamente)
+      if (registerDto.tenantId) {
+        // Se fornecido, verifica se o tenant existe e está ativo
+        const tenant = await this.tenantsService.findById(registerDto.tenantId);
+        if (!tenant || !tenant.isActive) {
+          throw new BadRequestException('Tenant inválido ou inativo');
+        }
+      }
+      // Se não fornecido, será criado automaticamente no UsersService
+    } else if (registerDto.role === Role.NUTRICIONISTA_FUNCIONARIO) {
+      // Nutricionista funcionário deve ter tenantId obrigatório
       if (!registerDto.tenantId) {
-        throw new BadRequestException('TenantId é obrigatório para este tipo de usuário');
+        throw new BadRequestException('TenantId é obrigatório para nutricionista funcionário');
+      }
+
+      // Verifica se o tenant existe e está ativo
+      const tenant = await this.tenantsService.findById(registerDto.tenantId);
+      if (!tenant || !tenant.isActive) {
+        throw new BadRequestException('Tenant inválido ou inativo');
+      }
+    } else if (registerDto.role === Role.PACIENTE) {
+      // Paciente deve ter tenantId e nutricionistaId
+      if (!registerDto.tenantId) {
+        throw new BadRequestException('TenantId é obrigatório para pacientes');
+      }
+
+      if (!registerDto.nutricionistaId) {
+        throw new BadRequestException('NutricionistaId é obrigatório para pacientes');
       }
 
       // Verifica se o tenant existe e está ativo
@@ -110,27 +135,43 @@ export class AuthService {
         throw new BadRequestException('Tenant inválido ou inativo');
       }
 
-      // Validações específicas para pacientes
-      if (registerDto.role === Role.PACIENTE) {
-        if (!registerDto.nutricionistaId) {
-          throw new BadRequestException('NutricionistaId é obrigatório para pacientes');
-        }
-
-        // Verifica se o nutricionista existe e pertence ao mesmo tenant
-        const nutricionista = await this.usersService.findById(registerDto.nutricionistaId);
-        if (!nutricionista || 
-            nutricionista.role !== Role.NUTRICIONISTA || 
-            nutricionista.tenantId !== registerDto.tenantId) {
-          throw new BadRequestException('Nutricionista inválido ou não pertence ao tenant');
-        }
+      // Verifica se o nutricionista existe e pertence ao mesmo tenant
+      const nutricionista = await this.usersService.findById(registerDto.nutricionistaId);
+      if (!nutricionista || 
+          (nutricionista.role !== Role.NUTRICIONISTA_ADMIN && nutricionista.role !== Role.NUTRICIONISTA_FUNCIONARIO) ||
+          nutricionista.tenantId !== registerDto.tenantId) {
+        throw new BadRequestException('Nutricionista inválido ou não pertence ao tenant');
       }
     }
 
+    // Criar o usuário
     const user = await this.usersService.create(registerDto);
-    
-    // Remove a senha do retorno
-    const { password: _, ...result } = user;
-    return result;
+
+    // Gerar tokens
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    // Atualizar refresh token no banco
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenantId: user.tenantId,
+      },
+    };
   }
 
   async refreshToken(refreshToken: string) {
